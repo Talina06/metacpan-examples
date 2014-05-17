@@ -4,15 +4,21 @@ use strict;
 use warnings;
 
 use Data::Printer;
+use FindBin qw ($Bin);
+use lib "$Bin/../lib";
 use MetaCPAN::Util qw( es );
 
-my $scroller = es()->scrolled_search(
-    query       => { match_all => {} },
-    search_type => 'scan',
-    scroll      => '5m',
-    index       => 'v0',
-    type        => 'author',
+my $scroller = es()->scroll_helper(
+    search_type => "scan",
+    scroll      => "5m",
+    index       => "v0",
+    type        => "author",
     size        => 100,
+    body => {
+	query => {
+		match_all =>  {} 
+	}
+   }
 );
 
 while ( my $result = $scroller->next ) {
@@ -23,7 +29,7 @@ while ( my $result = $scroller->next ) {
 
 =head1 DESCRIPTION
 
-This script uses the ElasticSearch scrolling API.  It provides you with an
+This script uses the Search::Elasticsearch::Scroll scrolling API.  It provides you with an
 iterator and fetches new batches of results as the are needed.  This particular
 example will iterate over every CPAN author.  The size is quite low, so that
 you don't get overwhelmed with debugging data when first running this script.
